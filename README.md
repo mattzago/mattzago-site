@@ -14,7 +14,7 @@ This repository serves a blank home page at https://mattzago.com/ and the Tino Z
 DNS was checked November 6, 2026 and already resolves to GitHub Pages. No additional DNS record is needed for /tinozago/.
 
 The root index.html is intentionally blank. The gallery's index.html is inside tinozago/.
-The gallery contains 134 catalogue records and 131 images, from the October 18, 2026 snapshot. It does not automatically sync with Google Sheets.
+The gallery contains 133 catalogue records and 131 images. Catalogue information is from the October 18, 2026 snapshot; drawing photographs were reviewed November 6, 2026. It does not automatically sync with Google Sheets.
 Images are served with the site. Optional links to originals retain Google Drive permissions. Storage locations and working-copy notes are excluded. The unresolved black-and-white A/B distinction remains in the artwork details.
 
 This package has been prepared locally; nothing has been published.
