@@ -95,7 +95,7 @@
       if (state.decade !== 'all' && state.decade !== 'undated' && Math.floor(year / 10) * 10 !== Number(state.decade)) return false;
       if (state.images === 'with' && !art.image) return false;
       if (state.images === 'without' && art.image) return false;
-      const searchable = `${art.title} ${art.year} ${art.medium}`.toLowerCase();
+      const searchable = `${art.title} ${art.year} ${art.medium} ${art.description || ''}`.toLowerCase();
       return terms.every(term => searchable.includes(term));
     });
     filtered.sort((a, b) => {
@@ -200,6 +200,8 @@
     $('detailTitle').textContent = art.title;
     $('detailMedium').textContent = mediumLabel(art);
     $('detailYear').textContent = yearLabel(art);
+    $('detailDescription').textContent = art.description || '';
+    $('detailDescription').hidden = !art.description;
     const imageHost = $('detailImage');
     const restoreImageFocus = imageHost.contains(document.activeElement);
     imageHost.replaceChildren();
