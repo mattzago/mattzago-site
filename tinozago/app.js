@@ -220,10 +220,10 @@
     }
     const metadata = $('detailMetadata');
     metadata.replaceChildren();
-    const pairs = [['Dimensions', art.dimensions], ['Date', art.date], ['Image filename', art.filename]];
+    const pairs = [['Dimensions', art.dimensions], ['Date', art.date]];
     pairs.forEach(([label, value]) => {
       if (!value) return;
-      const item = text('div', '', `metadata-item${label === 'Image filename' ? ' filename' : ''}`);
+      const item = text('div', '', 'metadata-item');
       item.append(text('dt', label), text('dd', value));
       metadata.append(item);
     });
