@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow, noimageindex, nosnippet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="description" content="Explore a catalogue of drawings and paintings by Tino Zago.">
+  <title>Tino Zago — Drawings & paintings</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#catalogue">Skip to the collection</a>
+  <header class="site-header page-width">
+    <a class="wordmark" href="#top" aria-label="Tino Zago, top of page">TZ<span>TINO ZAGO</span></a>
+    <nav aria-label="Main navigation"><a href="#catalogue">The collection <span aria-hidden="true">↗</span></a><span class="preview-badge">Artwork catalogue</span></nav>
+  </header>
+
+  <main>
+    <section class="hero page-width" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A collection of works</p>
+        <h1 id="hero-title">Tino Zago<span>Drawings &amp;<br> paintings.</span></h1>
+        <p class="hero-intro">An invitation to look closer.<br> Explore the works, one image at a time.</p>
+        <a href="#catalogue" class="explore-link">Explore the collection <span aria-hidden="true">↓</span></a>
+        <p class="hero-count" id="heroCount">134 records <span>·</span> 131 images</p>
+      </div>
+      <div class="hero-art" id="heroArt" aria-label="Featured artwork"></div>
+    </section>
+
+    <section class="catalogue page-width" id="catalogue" aria-labelledby="collection-title">
+      <div class="section-heading"><div><p class="eyebrow">The catalogue</p><h2 id="collection-title">Explore the collection</h2></div><span class="collection-total" id="collectionTotal">134 records</span></div>
+
+      <div class="filter-panel">
+        <div class="filter-top">
+          <div class="medium-tabs" role="group" aria-label="Artwork medium">
+            <button type="button" class="medium-tab active" data-medium="all" aria-pressed="true">All works <span id="countAll"></span></button>
+            <button type="button" class="medium-tab" data-medium="painting" aria-pressed="false">Paintings <span id="countPaintings"></span></button>
+            <button type="button" class="medium-tab" data-medium="drawing" aria-pressed="false">Drawings <span id="countDrawings"></span></button>
+          </div>
+          <label class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg><span class="sr-only">Search title, series or year</span><input id="search" type="search" placeholder="Search title, series or year" autocomplete="off"></label>
+        </div>
+        <div class="filter-bottom">
+          <div class="select-filters">
+            <label class="select-wrap"><span class="sr-only">Filter by decade</span><select id="decade"><option value="all">All decades</option></select></label>
+            <label class="select-wrap"><span class="sr-only">Filter by image availability</span><select id="images"><option value="all">All records</option><option value="with">With images</option><option value="without">Without images</option></select></label>
+            <button id="resetFilters" class="reset-button" type="button" hidden>Reset filters <span aria-hidden="true">×</span></button>
+          </div>
+          <div class="display-controls">
+            <label class="sort-wrap"><span>Sort</span><select id="sort" aria-label="Sort collection"><option value="featured">Gallery order</option><option value="year-asc">Year: oldest first</option><option value="year-desc">Year: newest first</option><option value="title">Title: A–Z</option></select></label>
+            <div class="view-toggle" role="group" aria-label="Collection view">
+              <button type="button" id="galleryView" aria-label="Gallery view" aria-pressed="true" title="Gallery view"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></button>
+              <button type="button" id="tableView" aria-label="Table view" aria-pressed="false" title="Table view"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h18M3 12h18M3 19h18"></path></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="results-line"><p id="resultsCount" role="status" aria-live="polite" aria-atomic="true"></p><span id="viewHint">Select a work to look closer <span aria-hidden="true">↗</span></span></div>
+      <div id="artworks" class="artwork-grid"></div>
+      <div class="empty-state" id="emptyState" hidden><span aria-hidden="true">—</span><h3>No works found</h3><p>Try a different title, year or filter.</p><button type="button" id="emptyReset">Clear all filters</button></div>
+    </section>
+  </main>
+
+  <footer class="site-footer page-width"><div><a href="#top" class="footer-name">Tino Zago</a><p>Drawings &amp; paintings</p></div><p class="footer-note">A catalogue of drawings and paintings.</p><a href="#top" class="back-top">Back to top <span aria-hidden="true">↑</span></a></footer>
+
+  <dialog id="artworkDialog" aria-labelledby="detailTitle">
+    <div class="dialog-toolbar"><span class="eyebrow">A closer look</span><div class="dialog-navigation"><span id="detailPosition"></span><button type="button" id="previousWork" aria-label="Previous artwork" title="Previous artwork (left arrow)">←</button><button type="button" id="nextWork" aria-label="Next artwork" title="Next artwork (right arrow)">→</button><button type="button" id="closeDialog" class="close-button" aria-label="Close artwork details">×</button></div></div>
+    <div class="detail-layout"><div class="detail-image-wrap" id="detailImage"></div><div class="detail-copy"><p class="eyebrow" id="detailMedium"></p><h2 id="detailTitle"></h2><p class="detail-year" id="detailYear"></p><dl id="detailMetadata"></dl><p id="detailReview" class="review-note" hidden></p><a id="detailSource" class="source-link" target="_blank" rel="noopener noreferrer">View original in Drive <span aria-hidden="true">↗</span></a></div></div>
+  </dialog>
+  <noscript><p class="noscript">Please enable JavaScript to browse this collection.</p></noscript>
+</body>
+</html>
