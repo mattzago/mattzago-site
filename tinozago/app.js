@@ -4,12 +4,18 @@
   const byId = new Map(artworks.map(art => [art.id, art]));
   const $ = id => document.getElementById(id);
   const state = { query: '', medium: 'all', decade: 'all', images: 'all', sort: 'featured', view: 'gallery' };
-  const featuredRows = [101, 98, 131, 108, 92, 102, 106, 132, 20, 47, 64, 74];
+  const featuredRows = [98, 131, 108, 92, 102, 106, 132, 20, 47, 64, 74];
   const featuredRank = new Map(featuredRows.map((row, index) => [row, index]));
   let filtered = [];
   let dialogWorks = [];
   let currentId = null;
   let returnFocus = null;
+  let photoReturnFocus = null;
+  let photoLoadToken = 0;
+  let photoLoaded = false;
+  let actualSize = false;
+  let savedBodyOverflow = null;
+  let photoDrag = null;
 
   const text = (tag, value, className) => {
     const element = document.createElement(tag);
@@ -22,6 +28,9 @@
   const yearLabel = art => art.year || 'Undated';
   const mediumLabel = art => art.medium || 'Collection record';
   const imageCount = artworks.filter(art => art.image).length;
+  const localImagePath = value => typeof value === 'string' && value.length > 0 &&
+    !/^(?:[a-z][\w+.-]*:|[\/\\])/i.test(value) &&
+    !value.split(/[\/\\]/).includes('..') ? value : '';
 
   function placeholder(message = 'No image available') {
     const element = text('span', '', 'placeholder');
@@ -30,7 +39,9 @@
   }
 
   function addImage(container, art, { full = false, eager = false } = {}) {
-    if (!art.image) {
+    const original = localImagePath(art.image);
+    const thumbnail = localImagePath(art.thumbnail);
+    if (!original) {
       container.classList.add('has-no-image');
       const empty = placeholder();
       empty.append(text('small', 'Collection record'));
@@ -41,23 +52,23 @@
     img.alt = art.title;
     img.loading = eager ? 'eager' : 'lazy';
     img.decoding = 'async';
-    img.src = full ? art.image : (art.thumbnail || art.image);
-    let triedOriginal = full || !art.thumbnail;
+    img.src = full ? original : (thumbnail || original);
+    let triedOriginal = full || !thumbnail;
     img.addEventListener('error', () => {
       if (!triedOriginal) {
         triedOriginal = true;
-        img.src = art.image;
+        img.src = original;
       } else {
         container.classList.add('has-no-image');
         img.remove();
-        container.append(placeholder('Image unavailable in this preview'));
+        container.append(placeholder('Image unavailable'));
       }
     });
     container.append(img);
   }
 
   function renderHero() {
-    const art = artworks.find(item => item.row === 101 && item.image) || artworks.find(item => item.image);
+    const art = artworks.find(item => item.row === featuredRows[0] && item.image) || artworks.find(item => item.image);
     if (!art) return;
     const button = text('button', '', 'hero-piece');
     button.type = 'button';
@@ -190,9 +201,23 @@
     $('detailMedium').textContent = mediumLabel(art);
     $('detailYear').textContent = yearLabel(art);
     const imageHost = $('detailImage');
+    const restoreImageFocus = imageHost.contains(document.activeElement);
     imageHost.replaceChildren();
     imageHost.classList.remove('has-no-image');
-    addImage(imageHost, art, { full: true, eager: true });
+    const hasPhoto = Boolean(localImagePath(art.largeImage) || localImagePath(art.image));
+    if (hasPhoto) {
+      const photoButton = text('button', '', 'detail-image-button');
+      photoButton.type = 'button';
+      photoButton.setAttribute('aria-label', `View larger photo of ${art.title}`);
+      photoButton.setAttribute('aria-haspopup', 'dialog');
+      photoButton.setAttribute('aria-controls', 'photoDialog');
+      addImage(photoButton, art, { full: true, eager: true });
+      photoButton.append(text('span', 'View larger photo ↗', 'detail-image-hint'));
+      photoButton.addEventListener('click', () => openPhoto(art, photoButton));
+      imageHost.append(photoButton);
+    } else {
+      addImage(imageHost, art, { full: true, eager: true });
+    }
     const metadata = $('detailMetadata');
     metadata.replaceChildren();
     const pairs = [['Dimensions', art.dimensions], ['Date', art.date], ['Image filename', art.filename]];
@@ -207,16 +232,13 @@
     review.replaceChildren();
     review.hidden = !art.reviewNote;
     if (art.reviewNote) review.append(text('strong', 'Catalogue note'), document.createTextNode(art.reviewNote));
-    const source = $('detailSource');
-    const safeSource = /^https:\/\/drive\.google\.com\//.test(art.sourceUrl || '');
-    source.hidden = !safeSource;
-    if (safeSource) source.href = art.sourceUrl;
-    else source.removeAttribute('href');
+    $('viewLargerPhoto').hidden = !hasPhoto;
     const position = dialogWorks.findIndex(item => item.id === art.id);
     $('detailPosition').textContent = `${position + 1} / ${dialogWorks.length}`;
     $('previousWork').disabled = position <= 0;
     $('nextWork').disabled = position >= dialogWorks.length - 1;
     $('artworkDialog').scrollTop = 0;
+    if (restoreImageFocus) (imageHost.querySelector('button') || $('closeDialog')).focus({ preventScroll: true });
   }
 
   function openArtwork(id, trigger) {
@@ -227,14 +249,100 @@
     renderDetail(art);
     const dialog = $('artworkDialog');
     if (!dialog.open) dialog.showModal();
-    document.body.style.overflow = 'hidden';
+    syncScrollLock();
     $('closeDialog').focus({ preventScroll: true });
   }
 
   function stepDetail(direction) {
+    if ($('photoDialog').open) return;
     const index = dialogWorks.findIndex(art => art.id === currentId);
     const next = dialogWorks[index + direction];
     if (next) renderDetail(next);
+  }
+
+  function syncScrollLock() {
+    if ($('artworkDialog').open || $('photoDialog').open) {
+      if (savedBodyOverflow === null) savedBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    } else if (savedBodyOverflow !== null) {
+      document.body.style.overflow = savedBodyOverflow;
+      savedBodyOverflow = null;
+    }
+  }
+
+  function setPhotoSize(zoomed) {
+    actualSize = zoomed && photoLoaded;
+    $('photoDialog').classList.toggle('is-actual-size', actualSize);
+    $('photoZoom').textContent = actualSize ? 'Fit to screen' : 'Actual size';
+    $('photoZoom').setAttribute('aria-pressed', String(actualSize));
+    $('photoViewport').scrollLeft = 0;
+    $('photoViewport').scrollTop = 0;
+  }
+
+  function openPhoto(art, trigger) {
+    if (!art) return;
+    const preferred = localImagePath(art.largeImage) || localImagePath(art.image);
+    const fallback = localImagePath(art.image);
+    const viewer = $('photoDialog');
+    const canvas = $('photoCanvas');
+    const status = $('photoStatus');
+    const token = ++photoLoadToken;
+    photoReturnFocus = trigger || document.activeElement;
+    photoLoaded = false;
+    photoDrag = null;
+    viewer.classList.remove('is-dragging');
+    setPhotoSize(false);
+    $('photoTitle').textContent = art.title;
+    $('photoYear').textContent = yearLabel(art);
+    $('photoZoom').disabled = true;
+    $('photoViewport').setAttribute('aria-label', `Photograph of ${art.title}`);
+    $('photoViewport').setAttribute('aria-busy', 'true');
+    $('photoHelp').textContent = 'Choose Actual size to look closer. Scroll, drag or swipe to move around the photo.';
+    canvas.replaceChildren();
+    canvas.hidden = true;
+    status.hidden = false;
+    status.textContent = preferred ? 'Loading photo…' : 'No photo is available for this artwork.';
+    if (!viewer.open) viewer.showModal();
+    syncScrollLock();
+    $('closePhoto').focus({ preventScroll: true });
+    if (!preferred) {
+      $('photoViewport').setAttribute('aria-busy', 'false');
+      $('photoHelp').textContent = 'Close this view to return to the artwork details.';
+      return;
+    }
+    const img = document.createElement('img');
+    img.alt = art.title;
+    img.decoding = 'async';
+    img.draggable = false;
+    let usedFallback = false;
+    img.addEventListener('load', () => {
+      if (token !== photoLoadToken || !viewer.open) return;
+      photoLoaded = true;
+      img.width = img.naturalWidth;
+      img.height = img.naturalHeight;
+      status.hidden = true;
+      canvas.hidden = false;
+      $('photoViewport').setAttribute('aria-busy', 'false');
+      $('photoZoom').disabled = false;
+      if (usedFallback) $('photoHelp').textContent = 'The larger photo is unavailable. Showing the standard photo; choose Actual size to inspect it.';
+    });
+    img.addEventListener('error', () => {
+      if (token !== photoLoadToken || !viewer.open) return;
+      if (!usedFallback && fallback && fallback !== preferred) {
+        usedFallback = true;
+        img.src = fallback;
+        return;
+      }
+      img.remove();
+      canvas.hidden = true;
+      status.hidden = false;
+      status.textContent = 'This photo could not be loaded.';
+      $('photoViewport').setAttribute('aria-busy', 'false');
+      $('photoHelp').textContent = 'Close this view to return to the artwork details.';
+    });
+    canvas.append(img);
+    // The larger asset is requested only after this viewer is opened.
+    img.src = preferred;
   }
 
   $('heroCount').replaceChildren(document.createTextNode(`${artworks.length} records `), text('span', '·'), document.createTextNode(` ${imageCount} images`));
@@ -253,9 +361,49 @@
   $('resetFilters').addEventListener('click', resetFilters);
   $('emptyReset').addEventListener('click', resetFilters);
   $('closeDialog').addEventListener('click', () => $('artworkDialog').close());
+  $('viewLargerPhoto').addEventListener('click', event => openPhoto(byId.get(currentId), event.currentTarget));
+  $('closePhoto').addEventListener('click', () => $('photoDialog').close());
+  $('photoZoom').addEventListener('click', () => setPhotoSize(!actualSize));
+  $('photoDialog').addEventListener('cancel', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    $('photoDialog').close();
+  });
+  $('photoDialog').addEventListener('close', () => {
+    ++photoLoadToken;
+    photoLoaded = false;
+    photoDrag = null;
+    $('photoDialog').classList.remove('is-dragging');
+    $('photoCanvas').replaceChildren();
+    setPhotoSize(false);
+    syncScrollLock();
+    if ($('artworkDialog').open && photoReturnFocus?.isConnected) photoReturnFocus.focus({ preventScroll: true });
+  });
+  const viewport = $('photoViewport');
+  viewport.addEventListener('pointerdown', event => {
+    if (!actualSize || event.pointerType !== 'mouse' || event.button !== 0) return;
+    photoDrag = { pointer: event.pointerId, x: event.clientX, y: event.clientY, left: viewport.scrollLeft, top: viewport.scrollTop };
+    viewport.setPointerCapture(event.pointerId);
+    $('photoDialog').classList.add('is-dragging');
+    viewport.focus({ preventScroll: true });
+    event.preventDefault();
+  });
+  viewport.addEventListener('pointermove', event => {
+    if (!photoDrag || event.pointerId !== photoDrag.pointer) return;
+    viewport.scrollLeft = photoDrag.left + photoDrag.x - event.clientX;
+    viewport.scrollTop = photoDrag.top + photoDrag.y - event.clientY;
+  });
+  const finishPhotoDrag = () => {
+    photoDrag = null;
+    $('photoDialog').classList.remove('is-dragging');
+  };
+  viewport.addEventListener('pointerup', finishPhotoDrag);
+  viewport.addEventListener('pointercancel', finishPhotoDrag);
+  viewport.addEventListener('lostpointercapture', finishPhotoDrag);
   $('previousWork').addEventListener('click', () => stepDetail(-1));
   $('nextWork').addEventListener('click', () => stepDetail(1));
   $('artworkDialog').addEventListener('keydown', event => {
+    if ($('photoDialog').open) return;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepDetail(event.key === 'ArrowLeft' ? -1 : 1); }
   });
   $('artworkDialog').addEventListener('click', event => {
@@ -264,7 +412,8 @@
     if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) $('artworkDialog').close();
   });
   $('artworkDialog').addEventListener('close', () => {
-    document.body.style.overflow = '';
+    if ($('photoDialog').open) $('photoDialog').close();
+    syncScrollLock();
     if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
   });
   renderHero();

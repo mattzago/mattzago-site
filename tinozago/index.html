@@ -5,11 +5,11 @@
   <meta name="robots" content="noindex, nofollow, noimageindex, nosnippet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f3ed">
-  <meta name="description" content="Explore a catalogue of drawings and paintings by Tino Zago.">
-  <title>Tino Zago — Drawings & paintings</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="data.js" defer></script>
-  <script src="app.js" defer></script>
+  <meta name="description" content="Remembering Tino Zago (1937–2025) through a collection of his drawings and paintings.">
+  <title>Tino Zago (1937–2025) — Drawings & paintings</title>
+  <link rel="stylesheet" href="style.css?v=4fffc22eb4fb">
+  <script src="data.js?v=f9d7290a350e" defer></script>
+  <script src="app.js?v=170e80148bb6" defer></script>
 </head>
 <body id="top">
   <a class="skip-link" href="#catalogue">Skip to the collection</a>
@@ -21,17 +21,17 @@
   <main>
     <section class="hero page-width" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">A collection of works</p>
+        <p class="eyebrow">In memory · <time datetime="1937">1937</time>–<time datetime="2025">2025</time></p>
         <h1 id="hero-title">Tino Zago<span>Drawings &amp;<br> paintings.</span></h1>
-        <p class="hero-intro">An invitation to look closer.<br> Explore the works, one image at a time.</p>
+        <p class="hero-intro">Remembering Tino Zago through his drawings and paintings.</p>
         <a href="#catalogue" class="explore-link">Explore the collection <span aria-hidden="true">↓</span></a>
-        <p class="hero-count" id="heroCount">133 records <span>·</span> 131 images</p>
+        <p class="hero-count" id="heroCount">125 records <span>·</span> 125 images</p>
       </div>
       <div class="hero-art" id="heroArt" aria-label="Featured artwork"></div>
     </section>
 
     <section class="catalogue page-width" id="catalogue" aria-labelledby="collection-title">
-      <div class="section-heading"><div><p class="eyebrow">The catalogue</p><h2 id="collection-title">Explore the collection</h2></div><span class="collection-total" id="collectionTotal">133 records</span></div>
+      <div class="section-heading"><div><p class="eyebrow">The catalogue</p><h2 id="collection-title">Explore the collection</h2></div><span class="collection-total" id="collectionTotal">125 records</span></div>
 
       <div class="filter-panel">
         <div class="filter-top">
@@ -63,11 +63,22 @@
     </section>
   </main>
 
-  <footer class="site-footer page-width"><div><a href="#top" class="footer-name">Tino Zago</a><p>Drawings &amp; paintings</p></div><p class="footer-note">A catalogue of drawings and paintings.</p><a href="#top" class="back-top">Back to top <span aria-hidden="true">↑</span></a></footer>
+  <footer class="site-footer page-width"><div><a href="#top" class="footer-name">Tino Zago</a><p>1937–2025 · Drawings &amp; paintings</p></div><p class="footer-note">If you have questions about these paintings or drawings, please email <a href="mailto:mandm@zaogm.net">mandm@zaogm.net</a>.</p><a href="#top" class="back-top">Back to top <span aria-hidden="true">↑</span></a></footer>
 
   <dialog id="artworkDialog" aria-labelledby="detailTitle">
     <div class="dialog-toolbar"><span class="eyebrow">A closer look</span><div class="dialog-navigation"><span id="detailPosition"></span><button type="button" id="previousWork" aria-label="Previous artwork" title="Previous artwork (left arrow)">←</button><button type="button" id="nextWork" aria-label="Next artwork" title="Next artwork (right arrow)">→</button><button type="button" id="closeDialog" class="close-button" aria-label="Close artwork details">×</button></div></div>
-    <div class="detail-layout"><div class="detail-image-wrap" id="detailImage"></div><div class="detail-copy"><p class="eyebrow" id="detailMedium"></p><h2 id="detailTitle"></h2><p class="detail-year" id="detailYear"></p><dl id="detailMetadata"></dl><p id="detailReview" class="review-note" hidden></p><a id="detailSource" class="source-link" target="_blank" rel="noopener noreferrer">View original in Drive <span aria-hidden="true">↗</span></a></div></div>
+    <div class="detail-layout"><div class="detail-image-wrap" id="detailImage"></div><div class="detail-copy"><p class="eyebrow" id="detailMedium"></p><h2 id="detailTitle"></h2><p class="detail-year" id="detailYear"></p><dl id="detailMetadata"></dl><p id="detailReview" class="review-note" hidden></p><button type="button" id="viewLargerPhoto" class="larger-photo-button" aria-haspopup="dialog" aria-controls="photoDialog">View larger photo <span aria-hidden="true">↗</span></button></div></div>
+  </dialog>
+  <dialog id="photoDialog" class="photo-viewer" aria-labelledby="photoTitle">
+    <div class="photo-toolbar">
+      <div class="photo-heading"><h2 id="photoTitle"></h2><span id="photoYear"></span></div>
+      <div class="photo-controls"><button type="button" id="photoZoom" aria-pressed="false" aria-controls="photoViewport" disabled>Actual size</button><button type="button" id="closePhoto" class="photo-close" aria-label="Close larger photo">Close <span aria-hidden="true">×</span></button></div>
+    </div>
+    <div id="photoViewport" class="photo-viewport" tabindex="0" role="region" aria-label="Artwork photograph" aria-describedby="photoHelp">
+      <p id="photoStatus" class="photo-message" role="status"></p>
+      <div id="photoCanvas" class="photo-canvas" hidden></div>
+    </div>
+    <p id="photoHelp" class="photo-help">Choose Actual size to look closer. Scroll, drag or swipe to move around the photo.</p>
   </dialog>
   <noscript><p class="noscript">Please enable JavaScript to browse this collection.</p></noscript>
 </body>
